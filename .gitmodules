@@ -1,0 +1,3 @@
+[submodule "lamson"]
+	path = lamson
+	url = https://github.com/archiebell/lamson.git

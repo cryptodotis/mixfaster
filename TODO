@@ -1,0 +1,45 @@
+TODO
+
+ - Way More of REMAIL
+ - replace templates/help.msg with something not stolen from dizum, 
+   and update it
+ - figure out a way to refresh mlist.txt, rlist.txt and pubring.{mix,asc} 
+ - Let setup.py be rerun without having to git checkout the modified files
+ - In mixKey.decode we assume a version of 2 if it's not provided. This is...
+   probably ok.
+ - mixKey.decode doesn't know the difference between CNm and CNp modes in the
+   pubring.mix string.  Neither does the author.
+ - In mixKeystore loadKeyRing there's an inconsistency where if we load a 
+   private key but never the public key we don't have the shortname and other 
+   properties. It'd be nice to throw an exception on access of those in that 
+   case...
+ - mixconfig.getCapString may not be accurate
+ - Can't have a single quote in your passphrase for the key.
+ - Untested Structure Sections:
+        PacketType.FinalHopPartialMessage
+        UserDataType.Gzip
+        UserDataType.Email
+ - Tons of Unimplemented Features:
+        Pool Delays
+        Partial Messages / Message Fragments
+        Parsing Dummy Messages
+        Posting to Newsgroups
+        Duplicate Mail Detection (Sending duplicates is a feature of mixmaster
+            that should be supported, not an error condition to be checked.)
+        Blocked Addresses
+        Doesn't reply with an explanation if it recieves a non-mix email
+ - Ensure remailer talks TLS over the SMTP links whenever possible
+ - Normalize logging. Make it a option chosen on setup
+     NSA logging - log all messages in and out
+     Debug logging - log messages that cause errors
+     Minimal logging - log almost nothing
+        
+LONG TERM REMAILER REFRESHES
+
+These will break older mixes. They should only be done if there are serious 
+advantages of keeping the old protocol mostly-intact instead of moving to a
+standard encrypted-wire-protocol of OpenPGP
+
+ - Newer Cryptographic Algorithms
+    RSA 2048 or ECC instead of RSA 1024
+    AES-256 instead of TDES

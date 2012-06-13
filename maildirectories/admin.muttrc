@@ -1,0 +1,11 @@
+set mbox_type=Maildir
+set folder="admin"
+set mask="!^\\.[^.]"
+set mbox="admin"
+set record="+.Sent"
+set postponed="+.Drafts"
+set spoolfile="admin"
+set sendmail="../remailer sendmail -port 25 -host 127.0.0.1"
+set realname="Remailer Admin"
+set from="FILL_IN_REMAILER_ADMIN_ADDRESS"
+set use_from="yes"

@@ -1,0 +1,7 @@
+*.pyc
+logs/
+run/
+app/data/
+maildirectories/admin
+maildirectories/abuse
+maildirectories/everythingelse

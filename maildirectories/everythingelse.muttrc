@@ -1,0 +1,8 @@
+set mbox_type=Maildir
+set folder="everythingelse"
+set mask="!^\\.[^.]"
+set mbox="everythingelse"
+set record="+.Sent"
+set postponed="+.Drafts"
+set spoolfile="everythingelse"
+set sendmail="../remailer sendmail -port 25 -host 127.0.0.1"
