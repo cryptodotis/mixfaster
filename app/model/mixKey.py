@@ -44,7 +44,7 @@ def parseMixKey(lines, passphrase=""):
             capline = l
             state = State.Header
         else:
-            raise Exception("Could not parse key as public or private Mix Key")
+            raise Exception("Could not parse key as public or private Mix Key:", l)
     return key
 
 class PublicMixKey:
@@ -171,7 +171,7 @@ class PublicMixKey:
         print "    Len  :", self.Decoded_KeyLen
         print "      N  :", self.N
         print "      E  :", self.E
-
+        print self.toMixFormat()
         
 class PrivateMixKey:
     class State:
@@ -403,7 +403,8 @@ class PrivateMixKey:
             print "   DMP1  :", self.DMP1
             print "   DMQ1  :", self.DMQ1
             print "   IQMP  :", self.IQMP
-    
+        print self.getPublicMixKey().toMixFormat()
+   
     def loadPublicCapabilitys(self, publicKey):
         self.ShortName = key.ShortName
         self.Address = key.Address

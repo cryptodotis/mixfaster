@@ -89,12 +89,16 @@ class MixMessage:
             
             if h: self.Headers.append(h)
         
-        self.PacketType = self.Headers[0].DecryptedHeader.PacketTypeId
-        
         if self.Headers[0].DecryptedHeader.PacketTypeId == MixPacketType.FinalHop:
             self.Payload = ParsedMixPayload(self.Packet_Decoded[512*20:], self.Headers[0].DecryptedHeader.TDesKey, self.Headers[0].DecryptedHeader.getPayloadIV())
         elif self.Headers[0].DecryptedHeader.PacketTypeId == MixPacketType.IntermediateHop:
             self.Payload = IntermediateMixPayload(self.Packet_Decoded[512*20:], self.Headers[0].DecryptedHeader.TDesKey, self.Headers[0].DecryptedHeader.getPayloadIV())
+            
+        if isinstance(self.Payload, ParsedMixPayload) and "null:" in self.Payload.DestinationFields:
+            self.PacketType = MixPacketType.DummyMessage
+        else:
+            self.PacketType = self.Headers[0].DecryptedHeader.PacketTypeId
+        
         
     def pprint(self):
         print "Sender Type: ", self.Type
@@ -135,6 +139,8 @@ class MixMessage:
             return self.Headers[0].DecryptedHeader.RemailerAddress
         elif self.PacketType == MixPacketType.FinalHop:
             return self.Payload.DestinationFields
+        elif self.PacketType == MixPacketType.DummyMessage:
+            return Exception("Called deliveryTo on a Dummy Message")
         else:
             raise Exception("Called deliveryTo with a PacketType that is unhandled")
     def deliverySubject(self):
@@ -142,6 +148,8 @@ class MixMessage:
             return ""#Subject doesn't matter
         elif self.PacketType == MixPacketType.FinalHop:
             return ' / '.join(self.Payload.getHeader('Subject'))
+        elif self.PacketType == MixPacketType.DummyMessage:
+            return Exception("Called deliverySubject on a Dummy Message")
         else:
             raise Exception("Called deliverySubject with a PacketType that is unhandled")
     def deliveryBody(self):
@@ -149,6 +157,8 @@ class MixMessage:
             return self._buildNextHopMessage()
         elif self.PacketType == MixPacketType.FinalHop:
             return self.Payload.UserData
+        elif self.PacketType == MixPacketType.DummyMessage:
+            return Exception("Called deliveryBody on a Dummy Message")
         else:
             raise Exception("Called deliveryBody with a PacketType that is unhandled")
     def deliveryHeaders(self):
@@ -163,17 +173,31 @@ class MixMessage:
                 if getRemailerConfig().allowHeader(h, v):
                     results.append((h, v))
             return results
+        elif self.PacketType == MixPacketType.DummyMessage:
+            return Exception("Called deliveryHeaders on a Dummy Message")
         else:
             raise Exception("Called deliveryHeaders with a PacketType that is unhandled")
             
    
 if __name__ == "__main__":
     logging.config.fileConfig("../../config/test_logging.conf")
+    
+    if len(sys.argv) > 1:
+        extrakeyfile = sys.argv[1]
+        extrakeypassphrase = sys.argv[2]
+        f = open(extrakeyfile, "r")
+        extrakeylines = f.readlines()
+        f.close()
+        getKeyStore().addKey(extrakeylines, extrakeypassphrase)
+    
     lines = sys.stdin.readlines()
     msg = MixMessage(lines)
     msg.pprint()
     print "========================"
-    print msg.deliveryTo()
-    print msg.deliverySubject()
-    print msg.deliveryHeaders()
-    print msg.deliveryBody()
+    if msg.PacketType == MixPacketType.DummyMessage:
+        print "Dummy Message"
+    else:
+        print msg.deliveryTo()
+        print msg.deliverySubject()
+        print msg.deliveryHeaders()
+        print msg.deliveryBody()

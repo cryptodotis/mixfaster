@@ -17,11 +17,13 @@ class ParsedMixPayload:
         Gzip = 1
         Email = 2
         Plain = 3
+        Empty = 100
         @staticmethod
         def toPretty(i):
             if i == ParsedMixPayload.UserDataType.Gzip: return "Gzip"
             elif i == ParsedMixPayload.UserDataType.Email: return "Email"
             elif i == ParsedMixPayload.UserDataType.Plain: return "Plain"
+            elif i == ParsedMixPayload.UserDataType.Empty: return "Empty"
             else: return "Hell if I know, strange value kid!"
     DecryptionKey = 0
     IV = 0
@@ -69,6 +71,9 @@ class ParsedMixPayload:
             else:
                 self.UserDataTypeId = self.UserDataType.Plain
                 self.UserData = self.UserData
+        else:
+            self.UserDataTypeId = self.UserDataType.Empty
+            self.UserData = ""
         
     def pprint(self):
         print "\tPacket Body -----------------------------"

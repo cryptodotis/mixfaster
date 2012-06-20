@@ -1,5 +1,5 @@
-import logging
-from lamson import view, queue
+import logging, uuid
+from lamson import view, queue, utils
 from lamson.utilities import *
 from lamson.routing import route, route_like, stateless, nolocking
 from lamson.mail import MailResponse
@@ -48,6 +48,10 @@ def FORWARD(message, to=None, host=None):
 def REMAIL(message, to=None, suffix=None, host=None):
     subject = (message['Subject'] or "").strip().lower()
     body = message.body().strip()
+    
+    messageId = str(uuid.uuid1())
+    utils.mail_to_file(message, filename=messageId)
+    
     if subject == 'remailer-stats':
         logging.debug("Processing a remailer-stats request...")
         pass
@@ -110,8 +114,10 @@ def REMAIL(message, to=None, suffix=None, host=None):
                         mail[h] = v
                     relay.deliver(mail.to_message())
                     logging.debug("Delivering a Final Hop Message...")
+            elif mixmsg.PacketType == MixPacketType.DummyMessage:
+                logging.debug("Ignoring a Dummy Message...")
             else:  
-                logging.debug("Padding on a Mix Message not understood...")
+                logging.debug("Mix Message not understood...", messageId)
                 
         elif body.startswirth('-----BEGIN PGP MESSAGE-----'):
             logging.debug("Processing a PGP message...")

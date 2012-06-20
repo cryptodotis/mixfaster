@@ -11,12 +11,18 @@ def getKeyStore():
     if not _mixKeyStore:
         _mixKeyStore = MixKeyStore()
         
-        f = open(getRemailerConfig()['filelocations']['secring.mix'], 'r')
+        try:
+            f = open(getRemailerConfig()['filelocations']['secring.mix'], 'r')
+        except IOError:
+            f = open('../../' + getRemailerConfig()['filelocations']['secring.mix'], 'r')
         privateKeyLines = f.readlines()
         f.close()
         _mixKeyStore.addKey(privateKeyLines, getRemailerConfig('remailerkeypassword'))
         
-        f = open(getRemailerConfig()['filelocations']['pubring.mix'], 'r')
+        try:
+            f = open(getRemailerConfig()['filelocations']['pubring.mix'], 'r')
+        except IOError:
+            f = open('../../' + getRemailerConfig()['filelocations']['pubring.mix'], 'r')
         lines = f.readlines()
         f.close()
         key = []

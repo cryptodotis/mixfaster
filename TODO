@@ -33,6 +33,8 @@ TODO
      NSA logging - log all messages in and out
      Debug logging - log messages that cause errors
      Minimal logging - log almost nothing
+ - Right now any message with a destination of null: gets ignored. No one
+   would mix a legit and a dummer recipient together... right?
         
 LONG TERM REMAILER REFRESHES
 
@@ -43,3 +45,6 @@ standard encrypted-wire-protocol of OpenPGP
  - Newer Cryptographic Algorithms
     RSA 2048 or ECC instead of RSA 1024
     AES-256 instead of TDES
+
+ - Update its assumption that it is the only mixmaster implementation
+   rem.c : 175 : bufileft(content, "mixmaster")

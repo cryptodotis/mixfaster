@@ -1,0 +1,8 @@
+0.2.0
+	Process (and ignore) dummy messages
+	log all mix messages that arrive
+	Change app name to mixmaster-faster because mixmaster expects to only
+		recieve messages from itself
+	Various debugging/development changes
+0.1.0
+	Initial development commit
