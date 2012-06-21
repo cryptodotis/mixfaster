@@ -35,7 +35,7 @@ class MixConfig(dict):
         self['ForbiddenHeaderValues'] = ['Authenticated sender is']
         
         self['remailerversionname'] = "mixmaster-faster"
-        self['remailerversionnum'] = "0.2.0"
+        self['remailerversionnum'] = "0.2.1"
         self['remailerversion'] = self['remailerversionname'] + self['remailerversionnum']
         
         self['remailerkeypassword']   = 'FILL_IN_REMAILER_PASSPHRASE'

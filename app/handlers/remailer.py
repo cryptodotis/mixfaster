@@ -119,7 +119,7 @@ def REMAIL(message, to=None, suffix=None, host=None):
             else:  
                 logging.debug("Mix Message not understood...", messageId)
                 
-        elif body.startswirth('-----BEGIN PGP MESSAGE-----'):
+        elif body.startswith('-----BEGIN PGP MESSAGE-----'):
             logging.debug("Processing a PGP message...")
             pass
         else:

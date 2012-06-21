@@ -35,6 +35,8 @@ TODO
      Minimal logging - log almost nothing
  - Right now any message with a destination of null: gets ignored. No one
    would mix a legit and a dummer recipient together... right?
+ - lamson has very, very rudimentary support for skipping over .onion MX records
+   (because of frell).  It'd be nice to fully support delivering to .onion
         
 LONG TERM REMAILER REFRESHES
 

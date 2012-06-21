@@ -1,3 +1,5 @@
+0.2.1
+	Fix delivery to domains by using correct MX/A processing
 0.2.0
 	Process (and ignore) dummy messages
 	log all mix messages that arrive
