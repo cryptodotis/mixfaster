@@ -46,12 +46,14 @@ class ParsedMixPayload:
         
         self.DecryptedData = self.DecryptedData[0 : self.DataLength + 4]
         
+        self.DestinationFields = []
         self.NumDestinationFields = struct.unpack('B', self.DecryptedData[byteIndex])[0]
         byteIndex += 1
         for i in range(self.NumDestinationFields):
             self.DestinationFields.append(self.DecryptedData[byteIndex : byteIndex + 80].strip(chr(0)).strip())
             byteIndex += 80
         
+        self.HeaderFields = []
         self.NumHeaderFields = struct.unpack('B', self.DecryptedData[4])[0]
         byteIndex += 1
         for i in range(self.NumDestinationFields):
