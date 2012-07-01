@@ -54,9 +54,9 @@ class ParsedMixPayload:
             byteIndex += 80
         
         self.HeaderFields = []
-        self.NumHeaderFields = struct.unpack('B', self.DecryptedData[4])[0]
+        self.NumHeaderFields = struct.unpack('B', self.DecryptedData[byteIndex])[0]
         byteIndex += 1
-        for i in range(self.NumDestinationFields):
+        for i in range(self.NumHeaderFields):
             self.HeaderFields.append(self.DecryptedData[byteIndex : byteIndex + 80].strip(chr(0)).strip())
             byteIndex += 80
             
@@ -76,6 +76,36 @@ class ParsedMixPayload:
         else:
             self.UserDataTypeId = self.UserDataType.Empty
             self.UserData = ""
+            
+        # Quicksilver seems to send mail in a nonstandard fashion.  It writes 
+        #  no Destination Fields, nor Header Fields.  Instead it places a ##
+        #  aand then the headers, a blank line, and the body.  
+        
+        if self.UserData.strip().startswith("##"):
+            PossibleQSMessage = self.UserData.strip()[3:]
+            lines = PossibleQSMessage.split("\n")
+            
+            QSHeaders = []
+            QSDestinations = []
+            beginQSBody = 0
+            for i in range(len(lines)):
+                print ">", lines[i]
+                if lines[i].strip():
+                    h, sep, v = lines[i].partition(':')
+                    if h and v:
+                        if h.strip() == "To":
+                            QSDestinations.append(lines[i])
+                        else:
+                            QSHeaders.append(lines[i])
+                else:
+                    beginQSBody = i
+                    break
+            
+            self.HeaderFields = QSHeaders
+            self.NumHeaderFields = len(QSHeaders)
+            self.DestinationFields = QSDestinations
+            self.NumDestinationFields = len(QSDestinations)
+            self.UserData = "\n".join(lines[beginQSBody+1:])
         
     def pprint(self):
         print "\tPacket Body -----------------------------"

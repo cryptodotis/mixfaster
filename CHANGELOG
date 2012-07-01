@@ -1,3 +1,21 @@
+0.3.0
+	Integrate bugfix from Tom Ritter to fix bad Message Sending bug. Previously,
+		as the server ran, all messages would be delivered to all recipients
+		that had been seen so far.
+	Fix Header Field processing that would badly mess up messages with no 
+		headers
+
+	Process Quicksilver Messages, which are formatted in a way inconsistent
+		with the Mixmaster spec.  See mixPayload.py
+	Process remailer-adminkey
+	Process detination-block requests and do not send mail to them.
+		WARNING: The detination-block file writing is not thread-safe
+	Better prompts in setup.py, allow admin and abuse addresses to be addresses	
+		on other domains.  Try to get adminkey from keyring.
+	
+	Add stubs for remailer-stats and remailer-conf
+	Stubs/Rearchitecting for downloading stats programmatically
+	Improve logging by outputing message UID with each line
 0.2.1
 	Fix delivery to domains by using correct MX/A processing
 0.2.0

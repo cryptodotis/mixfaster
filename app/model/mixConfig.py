@@ -35,7 +35,7 @@ class MixConfig(dict):
         self['ForbiddenHeaderValues'] = ['Authenticated sender is']
         
         self['remailerversionname'] = "mixmaster-faster"
-        self['remailerversionnum'] = "0.2.1"
+        self['remailerversionnum'] = "0.3.0"
         self['remailerversion'] = self['remailerversionname'] + self['remailerversionnum']
         
         self['remailerkeypassword']   = 'FILL_IN_REMAILER_PASSPHRASE'
@@ -47,12 +47,37 @@ class MixConfig(dict):
         self['remaileradminaddress']  = 'FILL_IN_REMAILER_ADMIN_ADDRESS'
         self['remailerabuseaddress']  = 'FILL_IN_REMAILER_ABUSE_ADDRESS'
         
+        self['adminpublickey']  = ''
+        self['blockedaddresses'] = []
+        
+        self['statsdirectory']  = 'FILL_IN_STATS_LOCATION'
+        
         self['filelocations'] = {}
+        self['filelocations']['adminpublickey'] = 'app/data/adminpublickey.asc'
+        self['filelocations']['blockedaddresses'] = 'app/data/blockedaddresses.txt'
         self['filelocations']['mlist'] = 'app/data/mlist.txt'
         self['filelocations']['rlist'] = 'app/data/rlist.txt'
         self['filelocations']['pubring.mix'] = 'app/data/pubring.mix'
         self['filelocations']['pgp-all.asc'] = 'app/data/pgp-all.asc'
         self['filelocations']['secring.mix'] = 'app/data/secring.mix'
+        
+        # ======================================================================
+        
+        try:
+            f = open(self['filelocations']['adminpublickey'], 'r')
+        except IOError:
+            f = open('../../' + self['filelocations']['adminpublickey'], 'r')
+        adminpublickeylines = f.readlines()
+        f.close()
+        self['adminpublickey']  = "".join(adminpublickeylines)
+        
+        try:
+            f = open(self['filelocations']['blockedaddresses'], 'r')
+        except IOError:
+            f = open('../../' + self['filelocations']['blockedaddresses'], 'r')
+        for l in f:
+            self['blockedaddresses'].append(l.lower().strip())
+        f.close()
 
     def allowHeader(self, h, v):
         for f in self['ForbiddenHeaders']:

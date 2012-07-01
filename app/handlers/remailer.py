@@ -53,47 +53,91 @@ def REMAIL(message, to=None, suffix=None, host=None):
     utils.mail_to_file(message, filename=messageId)
     
     if subject == 'remailer-stats':
-        logging.debug("Processing a remailer-stats request...")
-        pass
+        logging.debug("Processing a remailer-stats request..." + messageId)
+        stats = "This is not implemented yet."
+        if simplifyEmail(message['from']).lower() in getRemailerConfig('blockedaddresses'):
+            logging.debug("Skipping the remailer-stats request because sender is in the blocked addresses..." + messageId)
+        else:
+            mail = MailResponse(To = simplifyEmail(message['from']),
+                                From = getRemailerConfig('remailernobodyaddress'),
+                                Subject = "Statistics for the " + getRemailerConfig('remailershortname') + " remailer",
+                                Body = stats)
+            relay.deliver(mail.to_message())
+    elif subject == 'remailer-conf':
+        logging.debug("Processing a remailer-conf request..." + messageId)
+        conf = "This is not implemented yet."
+        if simplifyEmail(message['from']).lower() in getRemailerConfig('blockedaddresses'):
+            logging.debug("Skipping the remailer-conf request because sender is in the blocked addresses..." + messageId)
+        else:
+            mail = MailResponse(To = simplifyEmail(message['from']),
+                                From = getRemailerConfig('remailernobodyaddress'),
+                                Subject = "Capabilities of the " + getRemailerConfig('remailershortname') + " remailer",
+                                Body = conf)
+            relay.deliver(mail.to_message())
+    elif subject == 'remailer-adminkey':
+        logging.debug("Processing a remailer-adminkey request..." + messageId)
+        if simplifyEmail(message['from']).lower() in getRemailerConfig('blockedaddresses'):
+            logging.debug("Skipping the remailer-adminkey request because sender is in the blocked addresses..." + messageId)
+        else:
+            adminkey = view.respond(
+                    getRemailerConfig(), 
+                    'adminkey.msg',
+                    From=getRemailerConfig('remailernobodyaddress'),
+                    To=simplifyEmail(message['from']),
+                    Subject='Admin Contact Key')
+            relay.deliver(adminkey)
     elif subject == 'remailer-help':
-        logging.debug("Processing a remailer-help request...")
-        help = view.respond(
-                getRemailerConfig({'senderaddress' : simplifyEmail(message['from'])}), 
-                'help.msg',
-                From=getRemailerConfig('remailernobodyaddress'),
-                To=message['from'],
-                Subject='Remailer Help')
-        relay.deliver(help)
-        pass
+        logging.debug("Processing a remailer-help request..." + messageId)
+        if simplifyEmail(message['from']).lower() in getRemailerConfig('blockedaddresses'):
+            logging.debug("Skipping the remailer-help request because sender is in the blocked addresses..." + messageId)
+        else:
+            help = view.respond(
+                    getRemailerConfig({'senderaddress' : simplifyEmail(message['from'])}), 
+                    'help.msg',
+                    From=getRemailerConfig('remailernobodyaddress'),
+                    To=simplifyEmail(message['from']),
+                    Subject='Remailer Help')
+            relay.deliver(help)
     elif subject == 'remailer-key' or subject == 'remailer-keys':
-        logging.debug("Processing a remailer-key request...")
-        
-        privkeys = getKeyStore().listPrivateKeys()
-        if len(privkeys) > 1:
-            raise Exception("More than one private key found in the keystore...")
-        mixKey = getKeyStore().getPublicKey(privkeys[0]).toMixFormat()
-        
-        mixKey = getRemailerConfig().getMixKeyHeader(privkeys[0]) + "\n\n" + mixKey
-        
-        keys = ""
-        keys += getRemailerConfig().getCapString()
-        keys += "\n\n"
-        keys += mixKey
-        
-        mail = MailResponse(To = simplifyEmail(message['from']),
-                            From = getRemailerConfig('remailernobodyaddress'),
-                            Subject = "Remailer key for " + getRemailerConfig('remailershortname'),
-                            Body = keys)
-        relay.deliver(mail.to_message())
+        logging.debug("Processing a remailer-key request..." + messageId)
+        if simplifyEmail(message['from']).lower() in getRemailerConfig('blockedaddresses'):
+            logging.debug("Skipping the remailer-key request because sender is in the blocked addresses..." + messageId)
+        else:
+            privkeys = getKeyStore().listPrivateKeys()
+            if len(privkeys) > 1:
+                raise Exception("More than one private key found in the keystore...")
+            mixKey = getKeyStore().getPublicKey(privkeys[0]).toMixFormat()
+            
+            mixKey = getRemailerConfig().getMixKeyHeader(privkeys[0]) + "\n\n" + mixKey
+            
+            keys = ""
+            keys += getRemailerConfig().getCapString()
+            keys += "\n\n"
+            keys += mixKey
+            
+            mail = MailResponse(To = simplifyEmail(message['from']),
+                                From = getRemailerConfig('remailernobodyaddress'),
+                                Subject = "Remailer key for " + getRemailerConfig('remailershortname'),
+                                Body = keys)
+            relay.deliver(mail.to_message())
     else:
-        logging.debug("Processing a Message...")
+        logging.debug("Processing a Message..." + messageId)
         body = body.strip()
 
         if body.startswith('destination-block'):
-            logging.debug("Processing a destination-block message...")
-            pass
+            logging.debug("Processing a destination-block message..." + messageId)
+            
+            bodylines = body.split("\n")
+            blockaddress = bodylines[0].replace("destination-block ", "").lower().strip()
+            logging.debug("Processing a destination-block request for " + blockaddress)
+
+            getRemailerConfig('blockedaddresses').append(blockaddress)
+            
+            f = open(getRemailerConfig('filelocations')['blockedaddresses'], 'a')
+            f.write(blockaddress + "\n")
+            f.close()
         elif body.startswith('::'):
-            logging.debug("Processing a Mix Message...")
+            logging.debug("Processing a Mix Message..." + messageId)
             mixmsg = MixMessage(body)
             
             #This is where it _should_ go into the pool, but won't for now...
@@ -103,26 +147,29 @@ def REMAIL(message, to=None, suffix=None, host=None):
                                     Subject = mixmsg.deliverySubject(),
                                     Body = mixmsg.deliveryBody())
                 relay.deliver(mail.to_message())
-                logging.debug("Delivering an Intermediate Hop Message...")
+                logging.debug("Delivering an Intermediate Hop Message..." + messageId)
             elif mixmsg.PacketType == MixPacketType.FinalHop:
                 for deliveryAddr in mixmsg.deliveryTo():
-                    mail = MailResponse(To = deliveryAddr,
-                                    From = getRemailerConfig('remailernobodyaddress'),
-                                    Subject = mixmsg.deliverySubject(),
-                                    Body = mixmsg.deliveryBody())
-                    for h, v in mixmsg.deliveryHeaders():
-                        mail[h] = v
-                    relay.deliver(mail.to_message())
-                    logging.debug("Delivering a Final Hop Message...")
+                    logging.debug("Delivering a Final Hop Message..." + messageId)
+                    if deliveryAddr.lower() in getRemailerConfig('blockedaddresses'):
+                        logging.debug("Skipping a destination because it is in the blocked addresses..." + messageId)
+                    else:
+                        mail = MailResponse(To = deliveryAddr,
+                                        From = getRemailerConfig('remailernobodyaddress'),
+                                        Subject = mixmsg.deliverySubject(),
+                                        Body = mixmsg.deliveryBody())
+                        for h, v in mixmsg.deliveryHeaders():
+                            mail[h] = v
+                        relay.deliver(mail.to_message())
             elif mixmsg.PacketType == MixPacketType.DummyMessage:
                 logging.debug("Ignoring a Dummy Message...")
             else:  
-                logging.debug("Mix Message not understood...", messageId)
+                logging.debug("Mix Message not understood..." + messageId)
                 
         elif body.startswith('-----BEGIN PGP MESSAGE-----'):
-            logging.debug("Processing a PGP message...")
+            logging.debug("Processing a PGP message..." + messageId)
             pass
         else:
-            logging.debug("Passing on a remailer message not understood...")
+            logging.debug("Passing on a remailer message not understood..." + messageId)
     return REMAIL    
     

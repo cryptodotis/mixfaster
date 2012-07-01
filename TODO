@@ -26,7 +26,6 @@ TODO
         Posting to Newsgroups
         Duplicate Mail Detection (Sending duplicates is a feature of mixmaster
             that should be supported, not an error condition to be checked.)
-        Blocked Addresses
         Doesn't reply with an explanation if it recieves a non-mix email
  - Ensure remailer talks TLS over the SMTP links whenever possible
  - Normalize logging. Make it a option chosen on setup
@@ -34,13 +33,14 @@ TODO
      Debug logging - log messages that cause errors
      Minimal logging - log almost nothing
  - Right now any message with a destination of null: gets ignored. No one
-   would mix a legit and a dummer recipient together... right?
+   would mix a legit and a dummy recipient together... right?
  - lamson has very, very rudimentary support for skipping over .onion MX records
    (because of frell).  It'd be nice to fully support delivering to .onion
+ - destination-block file writing is not Thread-safe.
         
 LONG TERM REMAILER REFRESHES
 
-These will break older mixes. They should only be done if there are serious 
+These may break older mixes. They should only be done if there are serious 
 advantages of keeping the old protocol mostly-intact instead of moving to a
 standard encrypted-wire-protocol of OpenPGP
 
@@ -50,3 +50,8 @@ standard encrypted-wire-protocol of OpenPGP
 
  - Update its assumption that it is the only mixmaster implementation
    rem.c : 175 : bufileft(content, "mixmaster")
+
+ - Give the option to send a confirmation message for destination-block address
+ - Require verification for destination-block addresses added to the list
+ - Have a shared database for all remailers of destination-block addresses.  
+   Hash them to provide anonymity.

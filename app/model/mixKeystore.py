@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import subprocess
 import logging, logging.config
 
 from mixKey import *
@@ -9,33 +10,51 @@ _mixKeyStore = None
 def getKeyStore():
     global _mixKeyStore
     if not _mixKeyStore:
-        _mixKeyStore = MixKeyStore()
-        
-        try:
-            f = open(getRemailerConfig()['filelocations']['secring.mix'], 'r')
-        except IOError:
-            f = open('../../' + getRemailerConfig()['filelocations']['secring.mix'], 'r')
-        privateKeyLines = f.readlines()
-        f.close()
-        _mixKeyStore.addKey(privateKeyLines, getRemailerConfig('remailerkeypassword'))
-        
-        try:
-            f = open(getRemailerConfig()['filelocations']['pubring.mix'], 'r')
-        except IOError:
-            f = open('../../' + getRemailerConfig()['filelocations']['pubring.mix'], 'r')
-        lines = f.readlines()
-        f.close()
-        key = []
-        for l in lines:
-            l = l.strip()
-            if l == "-----End Mix Key-----":
-                key.append(l)
-                _mixKeyStore.addKey(key)
-                key = []
-            else:
-                key.append(l)
+        _mixKeyStore = loadFreshKeystore()
         
     return _mixKeyStore
+    
+def loadFreshKeystore():
+    _mixKeyStore = MixKeyStore()
+        
+    # This assumes only one private key will be found in the file.
+    try:
+        f = open(getRemailerConfig()['filelocations']['secring.mix'], 'r')
+    except IOError:
+        f = open('../../' + getRemailerConfig()['filelocations']['secring.mix'], 'r')
+    privateKeyLines = f.readlines()
+    f.close()
+    _mixKeyStore.addKey(privateKeyLines, getRemailerConfig('remailerkeypassword'))
+    
+    try:
+        f = open(getRemailerConfig()['filelocations']['pubring.mix'], 'r')
+    except IOError:
+        f = open('../../' + getRemailerConfig()['filelocations']['pubring.mix'], 'r')
+    lines = f.readlines()
+    f.close()
+    key = []
+    for l in lines:
+        l = l.strip()
+        if l == "-----End Mix Key-----":
+            key.append(l)
+            _mixKeyStore.addKey(key)
+            key = []
+        else:
+            key.append(l)
+    return _mixKeyStore
+    
+def refreshStats():
+    devnull = open("/dev/null", "w")
+    subprocess.call(["wget", getRemailerConfig('statsdirectory') + "mlist.txt"], stderr=devnull)
+    subprocess.call(["wget", getRemailerConfig('statsdirectory') + "rlist.txt"], stderr=devnull)
+    subprocess.call(["wget", getRemailerConfig('statsdirectory') + "pubring.mix"], stderr=devnull)
+    subprocess.call(["wget", getRemailerConfig('statsdirectory') + "pgp-all.asc"], stderr=devnull)
+    subprocess.call(["mv", "mlist.txt", "rlist.txt", "pubring.mix", "pgp-all.asc", "app/data/"])
+    devnull.close()
+
+def refreshKeyStore():
+    global _mixKeyStore
+    _mixKeyStore = loadFreshKeystore()
 
 class MixKeyStore:
     keystore = {}
