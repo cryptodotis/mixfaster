@@ -11,7 +11,7 @@ except:
     
 devnull = open("/dev/null", "w")
 subprocess.call(["mkdir", "-p", "app/data", "logs", "run"])
-subprocess.call(["touch", "app/data/blockedaddresses.txt"])
+subprocess.call(["touch", "app/data/blockedaddresses.txt", "app/data/iddatabase.dat"])
 
 # ============================================
 

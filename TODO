@@ -24,8 +24,6 @@ TODO
         Partial Messages / Message Fragments
         Parsing Dummy Messages
         Posting to Newsgroups
-        Duplicate Mail Detection (Sending duplicates is a feature of mixmaster
-            that should be supported, not an error condition to be checked.)
         Doesn't reply with an explanation if it recieves a non-mix email
  - Ensure remailer talks TLS over the SMTP links whenever possible
  - Normalize logging. Make it a option chosen on setup
@@ -37,6 +35,17 @@ TODO
  - lamson has very, very rudimentary support for skipping over .onion MX records
    (because of frell).  It'd be nice to fully support delivering to .onion
  - destination-block file writing is not Thread-safe.
+ - Message Database is not Thread-safe.
+ - Message Database does not expire old messages, although it has the 
+   information to do so.
+ - Message Database could be made more efficient with a tree structure or 
+   something
+ - Maximum Message Size
+ - Allow configuration as a middleman node that whitelists addresses
+ - If in middleman mode, and recieve a final hop message, pick a remailer
+   to random-hop it to.
+ - Make header block use regexes, and copy Dizum's
+   
         
 LONG TERM REMAILER REFRESHES
 
@@ -51,6 +60,9 @@ standard encrypted-wire-protocol of OpenPGP
  - Update its assumption that it is the only mixmaster implementation
    rem.c : 175 : bufileft(content, "mixmaster")
 
+ - mixmaster seems to use the Message ID as a timestamp, which is inconsistent 
+   with the spec.  mixfaster treats it as truly random.
+ 
  - Give the option to send a confirmation message for destination-block address
  - Require verification for destination-block addresses added to the list
  - Have a shared database for all remailers of destination-block addresses.  

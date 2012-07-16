@@ -117,7 +117,10 @@ class PublicMixKey:
             self.Version = temp[0]
             self.Protocol = "2" #Assume
         
-        temp = peices[4]
+        if len(peices) > 4:
+            temp = peices[4]
+        else:
+            temp = ""
         self.Middleman = "M" in temp
         self.Compress = "C" in temp
         self.News = temp.replace("M", "").replace("C", "")
@@ -156,6 +159,12 @@ class PublicMixKey:
         str += "258\n"
         str += splitToNPerLine(encodedData) + "\n"
         str += "-----End Mix Key-----\n"
+        return str
+    def getMixKeyHeader(self):
+        str = self.ShortName + " " + self.Address + " " + self.KeyId + " " + self.Version + " "
+        str += "M" if self.Middleman else ""
+        str += "C" if self.Compress else ""
+        str += self.News
         return str
     def pprint(self):
         print "Shortname:", self.ShortName
@@ -364,6 +373,13 @@ class PrivateMixKey:
         key.N = self.N
         key.E = self.E
         key.KeyId = self.KeyId
+        key.ShortName = self.ShortName
+        key.Address = self.Address
+        key.Protocol = self.Protocol
+        key.Version = self.Version
+        key.Middleman = self.Middleman
+        key.Compress = self.Compress
+        key.News = self.News
         return key
     
     PrivateRSAKey = None
@@ -405,7 +421,7 @@ class PrivateMixKey:
             print "   IQMP  :", self.IQMP
         print self.getPublicMixKey().toMixFormat()
    
-    def loadPublicCapabilitys(self, publicKey):
+    def loadPublicCapabilities(self, key):
         self.ShortName = key.ShortName
         self.Address = key.Address
         self.Protocol = key.Protocol

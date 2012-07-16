@@ -1,3 +1,13 @@
+0.4.0
+	Track messageids and do not resend duplicate messages
+	Respond to remailer-conf messages so remailer shows in echolot pingers
+	Add cronjob to download remailer stats hourly
+
+	Change UUID algorithm to uuid4 because libuuid exhausts file descriptors to
+		/var/lib/libuuid/clock.txt when uuid1 is called in new threads, thanks
+		to Tom Ritter for tracking this down
+	Remailer Keystore bugfixes
+	Speed up binaryToByteArray
 0.3.0
 	Integrate bugfix from Tom Ritter to fix bad Message Sending bug. Previously,
 		as the server ran, all messages would be delivered to all recipients

@@ -15,10 +15,8 @@ def mixTimestampFromBinary(binstr):
 def hexpad(str, len):
     return hex(str)[2:-1].zfill(len)
 def binaryToByteArray(str):
-    a = []
-    for b in str:
-        a.append(struct.unpack("B", b)[0])
-    return a
+    a = struct.unpack("B" * len(str), str)
+    return list(a)
 def byteArrayToBinary(arr):
     str=""
     for b in arr:
@@ -33,8 +31,7 @@ def bigEndian(param):
         #Convert an array of bytes to an int
         x = 0
         for b in param:
-            x = x << 8
-            x += b
+            x = (x << 8) + b
         return x
     elif isinstance(param, long) or isinstance(param, int):
         #Convert a long to a big-endian array of bytes

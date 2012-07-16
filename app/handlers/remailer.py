@@ -7,6 +7,7 @@ from lamson.mail import MailResponse
 from config.settings import relay
 
 from app.model.mixConfig import *
+from app.model.mixMsgDatabase import *
 from app.model.mixMessage import *
 from app.model.mixPacketType import *
 
@@ -49,7 +50,7 @@ def REMAIL(message, to=None, suffix=None, host=None):
     subject = (message['Subject'] or "").strip().lower()
     body = message.body().strip()
     
-    messageId = str(uuid.uuid1())
+    messageId = str(uuid.uuid4())
     utils.mail_to_file(message, filename=messageId)
     
     if subject == 'remailer-stats':
@@ -65,7 +66,7 @@ def REMAIL(message, to=None, suffix=None, host=None):
             relay.deliver(mail.to_message())
     elif subject == 'remailer-conf':
         logging.debug("Processing a remailer-conf request..." + messageId)
-        conf = "This is not implemented yet."
+        conf = getRemailerConfig().getConfResponse(getKeyStore())
         if simplifyEmail(message['from']).lower() in getRemailerConfig('blockedaddresses'):
             logging.debug("Skipping the remailer-conf request because sender is in the blocked addresses..." + messageId)
         else:
@@ -105,10 +106,12 @@ def REMAIL(message, to=None, suffix=None, host=None):
         else:
             privkeys = getKeyStore().listPrivateKeys()
             if len(privkeys) > 1:
-                raise Exception("More than one private key found in the keystore...")
-            mixKey = getKeyStore().getPublicKey(privkeys[0]).toMixFormat()
+                raise Exception("More than one private key found in the keystore..." + messageId)
+            elif len(privkeys) < 1:
+                raise Exception("Did not find any private keys in the keystore..." + messageId)
+            mixKey = privkeys[0].getPublicMixKey().toMixFormat()
             
-            mixKey = getRemailerConfig().getMixKeyHeader(privkeys[0]) + "\n\n" + mixKey
+            mixKey = getRemailerConfig().getMixKeyHeader(privkeys[0].KeyId) + "\n\n" + mixKey
             
             keys = ""
             keys += getRemailerConfig().getCapString()
@@ -149,18 +152,22 @@ def REMAIL(message, to=None, suffix=None, host=None):
                 relay.deliver(mail.to_message())
                 logging.debug("Delivering an Intermediate Hop Message..." + messageId)
             elif mixmsg.PacketType == MixPacketType.FinalHop:
-                for deliveryAddr in mixmsg.deliveryTo():
-                    logging.debug("Delivering a Final Hop Message..." + messageId)
-                    if deliveryAddr.lower() in getRemailerConfig('blockedaddresses'):
-                        logging.debug("Skipping a destination because it is in the blocked addresses..." + messageId)
-                    else:
-                        mail = MailResponse(To = deliveryAddr,
-                                        From = getRemailerConfig('remailernobodyaddress'),
-                                        Subject = mixmsg.deliverySubject(),
-                                        Body = mixmsg.deliveryBody())
-                        for h, v in mixmsg.deliveryHeaders():
-                            mail[h] = v
-                        relay.deliver(mail.to_message())
+                if getMsgDatabase().isDuplicate(mixmsg.messageid()):
+                    logging.debug("Skipping a Final Hop Message because I've seen and processed it before..." + messageId)
+                else:
+                    getMsgDatabase().addMessage(mixmsg.messageid())
+                    for deliveryAddr in mixmsg.deliveryTo():
+                        logging.debug("Delivering a Final Hop Message..." + messageId)
+                        if deliveryAddr.lower() in getRemailerConfig('blockedaddresses'):
+                            logging.debug("Skipping a destination because it is in the blocked addresses..." + messageId)
+                        else:
+                            mail = MailResponse(To = deliveryAddr,
+                                            From = getRemailerConfig('remailernobodyaddress'),
+                                            Subject = mixmsg.deliverySubject(),
+                                            Body = mixmsg.deliveryBody())
+                            for h, v in mixmsg.deliveryHeaders():
+                                mail[h] = v
+                            relay.deliver(mail.to_message())
             elif mixmsg.PacketType == MixPacketType.DummyMessage:
                 logging.debug("Ignoring a Dummy Message...")
             else:  

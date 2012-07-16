@@ -177,6 +177,11 @@ class MixMessage:
             return Exception("Called deliveryHeaders on a Dummy Message")
         else:
             raise Exception("Called deliveryHeaders with a PacketType that is unhandled")
+    def messageid(self):
+        if self.PacketType == MixPacketType.FinalHop:
+            return self.Headers[0].DecryptedHeader.MessageId
+        else:
+            return Exception("Called messageid on a MixMessage that isn't a Final Hop")
             
    
 if __name__ == "__main__":
@@ -201,3 +206,5 @@ if __name__ == "__main__":
         print msg.deliverySubject()
         print msg.deliveryHeaders()
         print msg.deliveryBody()
+        if msg.PacketType == MixPacketType.FinalHop:
+            print msg.messageid()
