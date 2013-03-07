@@ -44,3 +44,8 @@ What remains is generally out of date and archaic.
  - https://www.antagonism.org/anon/migrate-mixmaster.shtml
  - http://www.quicksilvermail.net/
  - https://github.com/crooks/mixmaster
+ - http://www.noreply.org/
+ - http://www.noreply.org/resources.html
+ - http://www.noreply.org/tls/
+ - http://www.noreply.org/load/
+ - https://www.antagonism.org/about.shtml
